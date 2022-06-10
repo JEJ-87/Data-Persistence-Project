@@ -3,15 +3,22 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using TMPro;
 
 public class MainManager : MonoBehaviour
 {
+    [Header("Text Objects")]
+    public TextMeshProUGUI highscoreText;
+    public Text ScoreText;
+
+    [Header("Objects To Hide")]
+    public GameObject highscore;
+    public GameObject GameOverText;
+
+    [Header("Brick Spawn Settings")]
     public Brick BrickPrefab;
     public int LineCount = 6;
     public Rigidbody Ball;
-
-    public Text ScoreText;
-    public GameObject GameOverText;
     
     private bool m_Started = false;
     private int m_Points;
@@ -36,6 +43,13 @@ public class MainManager : MonoBehaviour
                 brick.onDestroyed.AddListener(AddPoint);
             }
         }
+
+        //Init highscore
+        highscoreText.text = "Best Score : " + DataManager.Instance.bestPlayerName + " ~ " + DataManager.Instance.highScore.ToString();
+        if (!DataManager.Instance.hasSaved)
+        {
+            highscore.SetActive(false);
+        }
     }
 
     private void Update()
@@ -57,6 +71,13 @@ public class MainManager : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.Space))
             {
+                if (m_Points > DataManager.Instance.highScore)
+                {
+                    DataManager.Instance.bestPlayerName = DataManager.Instance.playerName;
+                    DataManager.Instance.highScore = m_Points;
+                    DataManager.Instance.hasSaved = true;
+                    DataManager.Instance.SaveData();
+                }
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
             }
         }
@@ -72,5 +93,17 @@ public class MainManager : MonoBehaviour
     {
         m_GameOver = true;
         GameOverText.SetActive(true);
+    }
+
+    public void ReturnToMainMenu()
+    {
+        if (m_GameOver && m_Points > DataManager.Instance.highScore)
+        {
+            DataManager.Instance.bestPlayerName = DataManager.Instance.playerName;
+            DataManager.Instance.highScore = m_Points;
+            DataManager.Instance.hasSaved = true;
+            DataManager.Instance.SaveData();
+        }
+        SceneManager.LoadScene(0);
     }
 }
